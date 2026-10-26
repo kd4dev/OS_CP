@@ -1,0 +1,26 @@
+{
+  "name": "dsm-system",
+  "version": "1.0.0",
+  "description": "Distributed Shared Memory (DSM) System with MSI Coherence, Ricart-Agrawala Mutex, and Live Web Dashboard",
+  "main": "server.js",
+  "scripts": {
+    "build:cpp": "make || true",
+    "build:ui": "cd dsm-ui && npm install && npm run build",
+    "build": "npm run build:cpp && npm run build:ui",
+    "start": "node server.js",
+    "dev:ui": "cd dsm-ui && npm run dev",
+    "test": "make run_tests"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "distributed-shared-memory",
+    "msi-protocol",
+    "cache-coherence",
+    "operating-systems",
+    "ricart-agrawala"
+  ],
+  "author": "",
+  "license": "ISC"
+}

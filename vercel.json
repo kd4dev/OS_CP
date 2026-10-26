@@ -1,0 +1,10 @@
+{
+  "buildCommand": "cd dsm-ui && npm install && npm run build",
+  "outputDirectory": "dsm-ui/dist",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    }
+  ]
+}

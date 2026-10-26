@@ -1,0 +1,22 @@
+# Binaries and build artifacts
+bin/
+build/
+*.exe
+*.o
+*.a
+*.so
+*.dylib
+
+# Node modules
+node_modules/
+dsm-ui/node_modules/
+
+# Logs
+*.log
+dsm.log
+
+# macOS / OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
