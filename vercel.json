@@ -1,10 +1,27 @@
 {
-  "buildCommand": "cd dsm-ui && npm install && npm run build",
-  "outputDirectory": "dsm-ui/dist",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "dsm-ui": {
+      "root": "dsm-ui",
+      "framework": "vite"
+    },
+    "app": {
+      "root": ".",
+      "runtime": "node"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api"
+      "destination": {
+        "service": "app"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "dsm-ui"
+      }
     }
   ]
 }
