@@ -111,7 +111,7 @@ export function TopBar({ onRunScenario }: TopBarProps) {
           {/* Step Mode Switch */}
           <button
             onClick={() => toggleStepMode()}
-            className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2 py-1 sm:px-2.5 rounded-md text-xs font-medium border transition-colors cursor-pointer ${
               stepMode
                 ? 'bg-info/15 text-info border-info/30 font-semibold'
                 : 'bg-surface-2 text-text-3 border-border hover:text-text'
@@ -120,7 +120,7 @@ export function TopBar({ onRunScenario }: TopBarProps) {
             aria-label="Toggle step-by-step packet tracer mode"
           >
             <Footprints className="w-3.5 h-3.5" />
-            <span>Step Mode</span>
+            <span className="hidden sm:inline">Step Mode</span>
           </button>
 
           {/* Command Palette (⌘K) */}

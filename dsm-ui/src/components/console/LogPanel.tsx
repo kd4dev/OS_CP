@@ -207,7 +207,7 @@ export function LogPanel({ logs, onSendCommand, onClearLogs, isOffline }: LogPan
                   {log.time}
                 </span>
                 <span
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider shrink-0 border ${getTagStyle(
+                  className={`px-1.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider shrink-0 border ${getTagStyle(
                     log.tag
                   )}`}
                 >

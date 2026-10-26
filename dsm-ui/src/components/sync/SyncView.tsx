@@ -260,7 +260,7 @@ export function SyncView({ nodes, mutexState, onRunPhiDemo }: SyncViewProps) {
                   </div>
                 </div>
 
-                <div className="flex justify-between text-[10px] text-text-3 pt-0.5">
+                <div className="flex justify-between text-[11px] text-text-3 pt-0.5">
                   <span>0.0 (Normal)</span>
                   <span className="text-warn">8.0 (Suspect)</span>
                   <span className="text-state-m">16.0 (Dead)</span>

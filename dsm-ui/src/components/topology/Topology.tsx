@@ -207,7 +207,7 @@ export function Topology({ nodes, onNodeClick }: TopologyProps) {
               y="66"
               textAnchor="middle"
               fill="var(--ok)"
-              fontSize="10"
+              fontSize="11"
               fontFamily="var(--font-mono)"
             >
               ● Port 7100 Live

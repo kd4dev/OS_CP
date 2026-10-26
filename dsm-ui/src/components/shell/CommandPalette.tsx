@@ -66,7 +66,7 @@ export function CommandPalette({ onRunScenario }: CommandPaletteProps) {
       >
         <Search className="w-3.5 h-3.5 text-text-3 group-hover:text-text" />
         <span className="hidden sm:inline">Search & Actions</span>
-        <kbd className="font-mono text-[10px] bg-surface-1 border border-border px-1.5 py-0.5 rounded text-text-3">
+        <kbd className="font-mono text-[11px] bg-surface-1 border border-border px-1.5 py-0.5 rounded text-text-3">
           ⌘K
         </kbd>
       </button>
@@ -86,7 +86,7 @@ export function CommandPalette({ onRunScenario }: CommandPaletteProps) {
                   className="w-full py-3 text-sm bg-transparent border-0 outline-none text-text placeholder:text-text-3 font-sans"
                   autoFocus
                 />
-                <kbd className="text-[10px] font-mono text-text-3 bg-surface-2 border border-border px-1.5 py-0.5 rounded">
+                <kbd className="text-[11px] font-mono text-text-3 bg-surface-2 border border-border px-1.5 py-0.5 rounded">
                   ESC
                 </kbd>
               </div>
@@ -140,7 +140,7 @@ export function CommandPalette({ onRunScenario }: CommandPaletteProps) {
                   >
                     <Layers className="w-3.5 h-3.5 text-text-2" />
                     <span className="flex-1">Overview Dashboard</span>
-                    {activeView === 'overview' && <span className="text-[10px] text-ok font-mono">Active</span>}
+                    {activeView === 'overview' && <span className="text-[11px] text-ok font-mono">Active</span>}
                   </Command.Item>
                   <Command.Item
                     onSelect={() => handleSelect(() => setActiveView('coherence'))}
@@ -148,7 +148,7 @@ export function CommandPalette({ onRunScenario }: CommandPaletteProps) {
                   >
                     <Cpu className="w-3.5 h-3.5 text-text-2" />
                     <span className="flex-1">MSI Coherence Directory (16 Pages)</span>
-                    {activeView === 'coherence' && <span className="text-[10px] text-ok font-mono">Active</span>}
+                    {activeView === 'coherence' && <span className="text-[11px] text-ok font-mono">Active</span>}
                   </Command.Item>
                   <Command.Item
                     onSelect={() => handleSelect(() => setActiveView('sync'))}
@@ -156,7 +156,7 @@ export function CommandPalette({ onRunScenario }: CommandPaletteProps) {
                   >
                     <Key className="w-3.5 h-3.5 text-text-2" />
                     <span className="flex-1">Synchronization & Mutual Exclusion</span>
-                    {activeView === 'sync' && <span className="text-[10px] text-ok font-mono">Active</span>}
+                    {activeView === 'sync' && <span className="text-[11px] text-ok font-mono">Active</span>}
                   </Command.Item>
                 </Command.Group>
 

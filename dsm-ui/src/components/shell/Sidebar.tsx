@@ -75,7 +75,7 @@ export function Sidebar({ onRunScenario }: SidebarProps) {
             <span className="text-sm font-semibold tracking-tight text-text leading-none">
               DSM
             </span>
-            <span className="text-[10px] text-text-3 font-mono tracking-tight leading-tight mt-1 truncate">
+            <span className="text-[11px] text-text-3 font-mono tracking-tight leading-tight mt-1 truncate">
               Shared Memory
             </span>
           </div>
@@ -149,7 +149,7 @@ export function Sidebar({ onRunScenario }: SidebarProps) {
             <span className="text-[11px] font-medium text-text truncate">
               {isOffline ? 'Backend Offline' : 'Kernel Live'}
             </span>
-            <span className="text-[10px] text-text-3 truncate">
+            <span className="text-[11px] text-text-3 truncate">
               OS Course Project
             </span>
           </div>

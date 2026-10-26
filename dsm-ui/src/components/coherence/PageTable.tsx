@@ -37,7 +37,7 @@ export function PageTable({ pages }: PageTableProps) {
     return (
       <div
         key={nodeId}
-        className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-mono border ${color}`}
+        className={`w-5 h-5 rounded flex items-center justify-center text-[11px] font-mono border ${color}`}
         title={`Node ${nodeId}: ${state}`}
       >
         {state[0]}

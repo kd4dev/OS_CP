@@ -38,11 +38,11 @@
 
   --text: #E8EAED;
   --text-2: #A1A9B5;
-  --text-3: #6E7785;
+  --text-3: #828D9D;
 
   --state-m: #F0736B;
   --state-s: #5BA4F5;
-  --state-i: #6E7785;
+  --state-i: #828D9D;
 
   --ok: #3DBE8B;
   --warn: #E0A93B;
@@ -61,16 +61,16 @@
 
   --text: #12151A;
   --text-2: #4A5260;
-  --text-3: #7B8492;
+  --text-3: #565F6E;
 
-  --state-m: #D64B42;
-  --state-s: #2F7FD9;
-  --state-i: #7B8492;
+  --state-m: #BA3329;
+  --state-s: #1C68BE;
+  --state-i: #565F6E;
 
-  --ok: #1F9D6C;
-  --warn: #B7791F;
+  --ok: #137A53;
+  --warn: #945F0F;
   --sync: #6D5BD0;
-  --info: #2F7FD9;
+  --info: #1C68BE;
 }
 
 /* Base styles */
