@@ -460,8 +460,18 @@ function handleRequest(req, res) {
           const numVal = parseInt(val, 10);
           const hexByte = (isNaN(numVal) ? 0x2A : numVal & 0xFF).toString(16).toUpperCase().padStart(2, '0');
 
-          const rowIdx = Math.min(7, Math.max(0, parseInt(addr.slice(2, 4) || '0', 16) % 8));
-          const colIdx = Math.min(15, Math.max(0, parseInt(addr.slice(4) || '0', 16) % 16));
+          let parsedAddr = parseInt(addr, 16);
+          if (isNaN(parsedAddr)) parsedAddr = 0x1A3F;
+
+          let rowIdx, colIdx;
+          if (addr.toLowerCase().includes('1a3f')) {
+            rowIdx = 1;
+            colIdx = 7;
+          } else {
+            rowIdx = Math.min(7, Math.max(0, Math.floor((parsedAddr % 128) / 16)));
+            colIdx = Math.min(15, Math.max(0, parsedAddr % 16));
+          }
+          const pageId = Math.min(15, Math.max(0, Math.floor(parsedAddr / 4096)));
 
           memoryMap[rowIdx].bytes[colIdx] = hexByte;
           highlightedCells = [
@@ -469,23 +479,37 @@ function handleRequest(req, res) {
             { row: 1, col: 7, type: 'outline' }
           ];
 
-          msiPages[rowIdx].dirState = 'Modified';
-          msiPages[rowIdx].owner = 3;
-          msiPages[rowIdx].nodeStates[3] = 'Modified';
-          msiPages[rowIdx].nodeStates[1] = 'Invalid';
-          msiPages[rowIdx].nodeStates[2] = 'Invalid';
+          msiPages[pageId].dirState = 'Modified';
+          msiPages[pageId].owner = 3;
+          msiPages[pageId].nodeStates[3] = 'Modified';
+          msiPages[pageId].nodeStates[1] = 'Invalid';
+          msiPages[pageId].nodeStates[2] = 'Invalid';
+          msiPages[pageId].nodeStates[4] = 'Invalid';
+          msiPages[pageId].sharers = [3];
+          msiPages[pageId].version++;
           memoryStats.invalidations++;
+          memoryStats.cacheMisses++;
 
-          addLog('WRITE', `Node 3 writing ${val} (0x${hexByte}) to ${addr}`);
-          addLog('SYNC', `Directory broadcasting Invalidate (INV) to Node 1, Node 2`);
-          addLog('UPDATE', `Memory address ${addr} updated successfully (State: Modified)`);
+          addLog('WRITE', `Node 3 writing ${val} (0x${hexByte}) to ${addr} (Row ${rowIdx}, Col ${colIdx}, Page ${pageId})`);
+          addLog('SYNC', `Directory broadcasting Invalidate (INV) to Sharers for Page ${pageId}`);
+          addLog('UPDATE', `Memory address ${addr} committed (State: Modified by Node 3)`);
 
-          result = { success: true, addr, value: hexByte, state: 'Modified' };
+          result = { success: true, addr, value: hexByte, state: 'Modified', row: rowIdx, col: colIdx, pageId };
         } else if (op === 'read') {
           // read <address>
           const addr = parts[1] || '0x1A3F';
-          const rowIdx = Math.min(7, Math.max(0, parseInt(addr.slice(2, 4) || '0', 16) % 8));
-          const colIdx = Math.min(15, Math.max(0, parseInt(addr.slice(4) || '0', 16) % 16));
+          let parsedAddr = parseInt(addr, 16);
+          if (isNaN(parsedAddr)) parsedAddr = 0x1A3F;
+
+          let rowIdx, colIdx;
+          if (addr.toLowerCase().includes('1a3f')) {
+            rowIdx = 1;
+            colIdx = 7;
+          } else {
+            rowIdx = Math.min(7, Math.max(0, Math.floor((parsedAddr % 128) / 16)));
+            colIdx = Math.min(15, Math.max(0, parsedAddr % 16));
+          }
+          const pageId = Math.min(15, Math.max(0, Math.floor(parsedAddr / 4096)));
           const val = memoryMap[rowIdx].bytes[colIdx];
 
           highlightedCells = [
@@ -493,13 +517,18 @@ function handleRequest(req, res) {
             { row: 5, col: 2, type: 'solid' }
           ];
 
-          msiPages[rowIdx].nodeStates[2] = 'Shared';
-          if (msiPages[rowIdx].dirState === 'Invalid') msiPages[rowIdx].dirState = 'Shared';
+          msiPages[pageId].nodeStates[2] = 'Shared';
+          if (!msiPages[pageId].sharers.includes(2)) {
+            msiPages[pageId].sharers.push(2);
+          }
+          if (msiPages[pageId].dirState === 'Invalid') {
+            msiPages[pageId].dirState = 'Shared';
+          }
           memoryStats.cacheHits++;
 
-          addLog('REQ', `Node 2 requesting read on address ${addr}`);
+          addLog('REQ', `Node 2 requesting read on address ${addr} (Page ${pageId})`);
           addLog('GRANT', `Access granted (State: Shared, Value: 0x${val})`);
-          result = { success: true, addr, value: val, state: 'Shared' };
+          result = { success: true, addr, value: val, state: 'Shared', row: rowIdx, col: colIdx, pageId };
         } else if (op === 'allocate') {
           const size = parseInt(parts[1] || '64', 10);
           memoryStats.usedMB = Math.min(memoryStats.totalMB, Math.round((memoryStats.usedMB + size / 4) * 10) / 10);
@@ -509,27 +538,51 @@ function handleRequest(req, res) {
           result = { success: true, size, memoryStats };
         } else if (op === 'lock') {
           const lockAddr = parts[1] || '0x1A3F';
-          mutexState.activeLocks.push({ name: lockAddr, owner: 'Node 1', timestamp: clusterNodes[0].lamport });
-          addLog('SYNC', `Acquiring distributed Ricart-Agrawala lock for ${lockAddr}...`);
-          addLog('SYNC', `Lock acquired on ${lockAddr} by Node 1 (Lamport clock: ${clusterNodes[0].lamport})`);
-          result = { success: true, lock: lockAddr, owner: 'Node 1' };
+          const existing = mutexState.activeLocks.find(l => l.name === lockAddr);
+          if (existing) {
+            addLog('WARN', `Lock contention: ${lockAddr} already held by ${existing.owner}. Enqueued in request queue.`);
+            mutexState.queue.push({ node: 'Node 2', timestamp: clusterNodes[1].lamport, lockName: lockAddr });
+            result = { success: true, queued: true, lock: lockAddr };
+          } else {
+            mutexState.activeLocks.push({ name: lockAddr, owner: 'Node 1', timestamp: clusterNodes[0].lamport, grantedAt: Date.now() });
+            addLog('SYNC', `Acquiring distributed Ricart-Agrawala lock for ${lockAddr}...`);
+            addLog('GRANT', `Lock acquired on ${lockAddr} by Node 1 (Lamport clock: ${clusterNodes[0].lamport})`);
+            result = { success: true, lock: lockAddr, owner: 'Node 1' };
+          }
         } else if (op === 'unlock') {
           const lockAddr = parts[1] || '0x1A3F';
+          const hadLock = mutexState.activeLocks.some(l => l.name === lockAddr);
           mutexState.activeLocks = mutexState.activeLocks.filter(l => l.name !== lockAddr);
-          addLog('SYNC', `Distributed lock on ${lockAddr} released. Sent broadcast UNLOCK_ACK to cluster.`);
+          if (hadLock) {
+            addLog('SYNC', `Distributed lock on ${lockAddr} released. Sent broadcast UNLOCK_ACK to cluster.`);
+            const nextInQueue = mutexState.queue.find(q => q.lockName === lockAddr);
+            if (nextInQueue) {
+              mutexState.queue = mutexState.queue.filter(q => q !== nextInQueue);
+              mutexState.activeLocks.push({ name: lockAddr, owner: nextInQueue.node, timestamp: nextInQueue.timestamp, grantedAt: Date.now() });
+              addLog('GRANT', `Deferred lock on ${lockAddr} granted to ${nextInQueue.node}.`);
+            }
+          } else {
+            addLog('WARN', `No active lock found on ${lockAddr} to release.`);
+          }
           result = { success: true, released: lockAddr };
         } else if (op === 'show') {
           const sub = (parts[1] || '').toLowerCase();
           if (sub === 'memory') {
-            addLog('INFO', `DSM Memory: 64 MB total, ${memoryStats.usedMB} MB used (MSI Coherent Directory)`);
+            addLog('INFO', `DSM Memory: 64 MB total, ${memoryStats.usedMB} MB used (${memoryStats.percentage}% physical committed)`);
           } else if (sub === 'nodes') {
-            addLog('INFO', `Active Cluster Nodes: 4 online, Phi-Accrual failure detector active`);
+            addLog('INFO', `Active Cluster Nodes: 4 online, Ricart-Agrawala & Phi-Accrual detector active`);
           } else if (sub === 'logs') {
             addLog('INFO', `Dumping ${logs.length} ring buffer log events...`);
+          } else {
+            addLog('INFO', `Usage: show [memory|nodes|logs]`);
           }
           result = { success: true };
         } else if (op === 'clear') {
           logs = [];
+          addLog('INFO', 'Console log ring buffer cleared');
+          result = { success: true };
+        } else if (op === 'help') {
+          addLog('INFO', 'Available commands: write <addr> <val>, read <addr>, lock <addr>, unlock <addr>, allocate <mb>, show [memory|nodes|logs], clear');
           result = { success: true };
         } else {
           addLog('INFO', `Executed custom command: ${cmd}`);

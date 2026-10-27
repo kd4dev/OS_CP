@@ -5,9 +5,10 @@ import { TopBar } from './TopBar';
 interface AppShellProps {
   children: ReactNode;
   onRunScenario: (key: string, title: string, desc: string) => void;
+  onSendCommand?: (cmd: string) => void;
 }
 
-export function AppShell({ children, onRunScenario }: AppShellProps) {
+export function AppShell({ children, onRunScenario, onSendCommand }: AppShellProps) {
   return (
     <div className="flex min-h-screen bg-bg text-text">
       {/* Fixed Sidebar */}
@@ -15,7 +16,7 @@ export function AppShell({ children, onRunScenario }: AppShellProps) {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <TopBar onRunScenario={onRunScenario} />
+        <TopBar onRunScenario={onRunScenario} onSendCommand={onSendCommand} />
         <main className="flex-1 p-4 sm:p-6 max-w-[1680px] w-full mx-auto space-y-6">
           {children}
         </main>

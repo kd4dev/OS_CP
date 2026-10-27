@@ -23,9 +23,10 @@ import { useClusterData } from '../../hooks/useClusterData';
 
 interface CommandPaletteProps {
   onRunScenario: (key: string, title: string, desc: string) => void;
+  onSendCommand: (cmd: string) => void;
 }
 
-export function CommandPalette({ onRunScenario }: CommandPaletteProps) {
+export function CommandPalette({ onRunScenario, onSendCommand }: CommandPaletteProps) {
   const [open, setOpen] = useState(false);
   const activeView = useSimStore((s) => s.activeView);
   const setActiveView = useSimStore((s) => s.setActiveView);
@@ -204,7 +205,7 @@ export function CommandPalette({ onRunScenario }: CommandPaletteProps) {
                 {/* Quick Commands */}
                 <Command.Group heading={<span className="text-[11px] font-mono uppercase tracking-wider text-text-3 px-2 py-1 block">Quick Commands</span>}>
                   <Command.Item
-                    onSelect={() => handleSelect(() => sendCommand('write 0x1A3F 100'))}
+                    onSelect={() => handleSelect(() => onSendCommand('write 0x1A3F 100'))}
                     className="flex items-center gap-2.5 px-2.5 py-2 text-xs rounded-md text-text hover:bg-surface-2 cursor-pointer transition-colors"
                   >
                     <Terminal className="w-3.5 h-3.5 text-text-3" />
@@ -212,7 +213,7 @@ export function CommandPalette({ onRunScenario }: CommandPaletteProps) {
                     <span className="text-[11px] text-text-3">Write to Target Page</span>
                   </Command.Item>
                   <Command.Item
-                    onSelect={() => handleSelect(() => sendCommand('read 0x1A3F'))}
+                    onSelect={() => handleSelect(() => onSendCommand('read 0x1A3F'))}
                     className="flex items-center gap-2.5 px-2.5 py-2 text-xs rounded-md text-text hover:bg-surface-2 cursor-pointer transition-colors"
                   >
                     <Terminal className="w-3.5 h-3.5 text-text-3" />
@@ -220,7 +221,7 @@ export function CommandPalette({ onRunScenario }: CommandPaletteProps) {
                     <span className="text-[11px] text-text-3">Issue Read Request</span>
                   </Command.Item>
                   <Command.Item
-                    onSelect={() => handleSelect(() => sendCommand('lock 0x1A3F'))}
+                    onSelect={() => handleSelect(() => onSendCommand('lock 0x1A3F'))}
                     className="flex items-center gap-2.5 px-2.5 py-2 text-xs rounded-md text-text hover:bg-surface-2 cursor-pointer transition-colors"
                   >
                     <Terminal className="w-3.5 h-3.5 text-text-3" />
@@ -228,7 +229,7 @@ export function CommandPalette({ onRunScenario }: CommandPaletteProps) {
                     <span className="text-[11px] text-text-3">Acquire RA Mutex</span>
                   </Command.Item>
                   <Command.Item
-                    onSelect={() => handleSelect(() => sendCommand('unlock 0x1A3F'))}
+                    onSelect={() => handleSelect(() => onSendCommand('unlock 0x1A3F'))}
                     className="flex items-center gap-2.5 px-2.5 py-2 text-xs rounded-md text-text hover:bg-surface-2 cursor-pointer transition-colors"
                   >
                     <Terminal className="w-3.5 h-3.5 text-text-3" />
@@ -236,7 +237,7 @@ export function CommandPalette({ onRunScenario }: CommandPaletteProps) {
                     <span className="text-[11px] text-text-3">Release RA Mutex</span>
                   </Command.Item>
                   <Command.Item
-                    onSelect={() => handleSelect(() => sendCommand('clear'))}
+                    onSelect={() => handleSelect(() => onSendCommand('clear'))}
                     className="flex items-center gap-2.5 px-2.5 py-2 text-xs rounded-md text-text hover:bg-surface-2 cursor-pointer transition-colors"
                   >
                     <Terminal className="w-3.5 h-3.5 text-text-3" />

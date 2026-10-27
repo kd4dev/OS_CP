@@ -19,9 +19,10 @@ import { downloadEvaluationReport } from '../../lib/exportReport';
 
 interface TopBarProps {
   onRunScenario: (key: string, title: string, desc: string) => void;
+  onSendCommand?: (cmd: string) => void;
 }
 
-export function TopBar({ onRunScenario }: TopBarProps) {
+export function TopBar({ onRunScenario, onSendCommand }: TopBarProps) {
   const activeView = useSimStore((s) => s.activeView);
   const simState = useSimStore((s) => s.simState);
   const setSimState = useSimStore((s) => s.setSimState);
@@ -35,14 +36,12 @@ export function TopBar({ onRunScenario }: TopBarProps) {
   const { nodes, memoryStats, mutexState, isOffline } = useClusterData();
 
   const handleSimToggle = async (action: 'run' | 'pause' | 'stop') => {
-    const prev = simState;
     const targetState = action === 'run' ? 'running' : (action === 'pause' ? 'paused' : 'stopped');
     setSimState(targetState);
     try {
       await setSimulationState(action);
     } catch (e) {
-      // Revert if failed
-      setSimState(prev);
+      // Keep optimistic state active locally
     }
   };
 
@@ -124,7 +123,7 @@ export function TopBar({ onRunScenario }: TopBarProps) {
           </button>
 
           {/* Command Palette (⌘K) */}
-          <CommandPalette onRunScenario={onRunScenario} />
+          <CommandPalette onRunScenario={onRunScenario} onSendCommand={onSendCommand || (() => {})} />
 
           {/* Export Report */}
           <button

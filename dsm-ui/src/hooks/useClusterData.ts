@@ -9,12 +9,15 @@ export function useClusterData() {
   const targetPageId = useSimStore((state) => state.targetPageId);
   const setNodeMsiStates = useSimStore((state) => state.setNodeMsiStates);
   const setSimState = useSimStore((state) => state.setSimState);
+  const simState = useSimStore((state) => state.simState);
+
+  const pollInterval = simState === 'running' ? 2500 : false;
 
   // Status Query
   const statusQuery = useQuery<ClusterStatusResponse>({
     queryKey: ['status'],
     queryFn: fetchStatus,
-    refetchInterval: 2500,
+    refetchInterval: pollInterval,
     refetchIntervalInBackground: false,
     retry: 1,
     initialData: {
@@ -30,7 +33,7 @@ export function useClusterData() {
   const memoryQuery = useQuery<{ grid: HexRow[]; memoryStats: MemoryStats }>({
     queryKey: ['memory'],
     queryFn: fetchMemory,
-    refetchInterval: 2500,
+    refetchInterval: pollInterval,
     refetchIntervalInBackground: false,
     retry: 1,
     initialData: {
@@ -43,7 +46,7 @@ export function useClusterData() {
   const logsQuery = useQuery<{ logs: LogEntry[] }>({
     queryKey: ['logs'],
     queryFn: fetchLogs,
-    refetchInterval: 2500,
+    refetchInterval: pollInterval,
     refetchIntervalInBackground: false,
     retry: 1,
     initialData: {
@@ -55,7 +58,7 @@ export function useClusterData() {
   const metricsQuery = useQuery<MetricsData>({
     queryKey: ['metrics'],
     queryFn: fetchMetrics,
-    refetchInterval: 2500,
+    refetchInterval: pollInterval,
     refetchIntervalInBackground: false,
     retry: 1,
     initialData: INITIAL_METRICS,
@@ -71,12 +74,12 @@ export function useClusterData() {
     }
   }, [statusQuery.data?.msiPages, targetPageId, setNodeMsiStates]);
 
-  // Sync sim state
+  // Sync sim state only when successfully fetched live from backend
   useEffect(() => {
-    if (statusQuery.data?.simState) {
+    if (statusQuery.isSuccess && statusQuery.data?.simState) {
       setSimState(statusQuery.data.simState);
     }
-  }, [statusQuery.data?.simState, setSimState]);
+  }, [statusQuery.isSuccess, statusQuery.data?.simState, setSimState]);
 
   return {
     isOffline,

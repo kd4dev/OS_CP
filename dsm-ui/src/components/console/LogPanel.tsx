@@ -22,12 +22,23 @@ export function LogPanel({ logs, onSendCommand, onClearLogs, isOffline }: LogPan
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [commandText, setCommandText] = useState<string>('');
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
+  const [showSyntaxGuide, setShowSyntaxGuide] = useState<boolean>(false);
   const [commandHistory, setCommandHistory] = useState<string[]>([
     'write 0x1A3F 100',
     'read 0x1A3F',
     'lock 0x1A3F',
     'unlock 0x1A3F',
   ]);
+
+  const quickChips = [
+    'write 0x1A3F 100',
+    'read 0x1A3F',
+    'lock 0x1A3F',
+    'unlock 0x1A3F',
+    'allocate 64',
+    'show memory',
+    'clear',
+  ];
 
   const [userHasScrolledUp, setUserHasScrolledUp] = useState<boolean>(false);
   const logContainerRef = useRef<HTMLDivElement>(null);
@@ -189,6 +200,65 @@ export function LogPanel({ logs, onSendCommand, onClearLogs, isOffline }: LogPan
         </div>
       )}
 
+      {/* Quick Action Chips & Help Toggle (Active in Shell CLI tab) */}
+      {activeTab === 'command' && (
+        <div className="px-3 py-1.5 border-b border-border bg-surface-2/40 flex items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-text-3 shrink-0">Quick:</span>
+            {quickChips.map((chip) => (
+              <button
+                key={chip}
+                onClick={() => {
+                  onSendCommand(chip);
+                  setCommandHistory((prev) => [chip, ...prev.slice(0, 30)]);
+                }}
+                className="px-2 py-0.5 rounded text-[11px] font-mono bg-surface-2 hover:bg-surface-3 hover:text-text text-text-3 border border-border transition-colors cursor-pointer shrink-0"
+                title={`Execute '${chip}'`}
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setShowSyntaxGuide(!showSyntaxGuide)}
+            className="text-[11px] font-mono text-info hover:underline shrink-0 cursor-pointer"
+          >
+            {showSyntaxGuide ? 'Hide Help' : 'Help'}
+          </button>
+        </div>
+      )}
+
+      {/* Syntax Guide Dropdown in Shell CLI */}
+      {activeTab === 'command' && showSyntaxGuide && (
+        <div className="p-3 bg-surface-2 border-b border-border space-y-2 text-xs font-mono">
+          <div className="flex justify-between items-center text-text font-semibold text-[11px]">
+            <span>DSM Kernel Command Reference</span>
+            <button onClick={() => setShowSyntaxGuide(false)} className="text-text-3 hover:text-text">✕</button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px]">
+            <div className="p-1.5 rounded bg-surface-1 border border-border">
+              <span className="text-info font-bold">write &lt;addr&gt; &lt;val&gt;</span> — Write byte to memory
+            </div>
+            <div className="p-1.5 rounded bg-surface-1 border border-border">
+              <span className="text-ok font-bold">read &lt;addr&gt;</span> — Read byte & trap page fault
+            </div>
+            <div className="p-1.5 rounded bg-surface-1 border border-border">
+              <span className="text-sync font-bold">lock &lt;addr&gt;</span> — Ricart-Agrawala mutex lock
+            </div>
+            <div className="p-1.5 rounded bg-surface-1 border border-border">
+              <span className="text-warn font-bold">unlock &lt;addr&gt;</span> — Release mutex lock
+            </div>
+            <div className="p-1.5 rounded bg-surface-1 border border-border">
+              <span className="text-text font-bold">allocate &lt;mb&gt;</span> — Allocate shared heap
+            </div>
+            <div className="p-1.5 rounded bg-surface-1 border border-border">
+              <span className="text-text font-bold">show &lt;memory|nodes|logs&gt;</span> — Inspect state
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Content Area */}
       <div
         ref={logContainerRef}
@@ -224,40 +294,47 @@ export function LogPanel({ logs, onSendCommand, onClearLogs, isOffline }: LogPan
             </div>
           )
         ) : (
-          /* Command Reference / Guide when in Command tab */
-          <div className="space-y-4 p-2 text-xs">
-            <div className="space-y-1">
-              <span className="text-xs font-semibold text-text">DSM Kernel Command Interface</span>
-              <p className="text-text-3 text-xs leading-relaxed">
-                Execute distributed shared memory primitives directly on the cluster. Commands trigger real kernel page faults, MSI coherence invalidations, or Ricart-Agrawala mutual exclusion.
-              </p>
+          /* Interactive Shell CLI Terminal Stream */
+          <div className="space-y-2">
+            <div className="text-[11px] text-text-3 border-b border-border/50 pb-2 mb-2 leading-relaxed">
+              <span className="text-text font-semibold">DSM Distributed OS Kernel Shell</span> (MSI Protocol &middot; Ricart-Agrawala Mutex)
+              <br />
+              Type a command below (e.g. <span className="text-info font-bold">write 0x1A3F 100</span>, <span className="text-ok font-bold">read 0x1A3F</span>, <span className="text-sync font-bold">lock 0x1A3F</span>, <span className="text-warn font-bold">clear</span>)
             </div>
 
-            <div className="space-y-2 border-t border-border pt-3">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-text-3">Supported Syntax:</span>
-              <div className="space-y-1.5 font-mono text-xs">
-                <div className="p-2 rounded bg-surface-2 border border-border flex justify-between items-center">
-                  <span className="text-text font-medium">write &lt;addr&gt; &lt;val&gt;</span>
-                  <span className="text-text-3">e.g. write 0x1A3F 100</span>
-                </div>
-                <div className="p-2 rounded bg-surface-2 border border-border flex justify-between items-center">
-                  <span className="text-text font-medium">read &lt;addr&gt;</span>
-                  <span className="text-text-3">e.g. read 0x1A3F</span>
-                </div>
-                <div className="p-2 rounded bg-surface-2 border border-border flex justify-between items-center">
-                  <span className="text-text font-medium">lock &lt;addr&gt;</span>
-                  <span className="text-text-3">e.g. lock 0x1A3F</span>
-                </div>
-                <div className="p-2 rounded bg-surface-2 border border-border flex justify-between items-center">
-                  <span className="text-text font-medium">unlock &lt;addr&gt;</span>
-                  <span className="text-text-3">e.g. unlock 0x1A3F</span>
-                </div>
-                <div className="p-2 rounded bg-surface-2 border border-border flex justify-between items-center">
-                  <span className="text-text font-medium">clear</span>
-                  <span className="text-text-3">Clear log ring buffer</span>
-                </div>
+            {logs.length > 0 ? (
+              logs.map((log, idx) => {
+                const isCmd = log.tag === 'CMD';
+                return (
+                  <div
+                    key={idx}
+                    className={`flex items-start gap-2 py-0.5 px-1 rounded transition-colors ${
+                      isCmd ? 'bg-surface-2/60 border-l-2 border-info pl-2 my-1 font-semibold text-info' : 'hover:bg-surface-2/30 text-text-2'
+                    }`}
+                  >
+                    <span className="text-text-3 shrink-0 tabular-nums text-[11px] select-none">
+                      {log.time}
+                    </span>
+                    {!isCmd && (
+                      <span
+                        className={`px-1 rounded text-[10px] font-semibold uppercase tracking-wider shrink-0 border ${getTagStyle(
+                          log.tag
+                        )}`}
+                      >
+                        {log.tag}
+                      </span>
+                    )}
+                    <span className={`break-all leading-relaxed ${isCmd ? 'text-info font-bold' : ''}`}>
+                      {log.text}
+                    </span>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="py-6 text-center text-text-3 text-xs italic">
+                Terminal buffer clear. Ready for commands.
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>
